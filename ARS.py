@@ -49,10 +49,10 @@ class Policy():
     self.theta = np.zeros((output_size, input_size))
     
   def evaluate(self, input, delta = None, direction = None):
-    if direction is None: 
-      return self.theta.dot(input)
-    elif direction == "positive":
-      return (self.theta + hp.noise*delta).dot(input)
+      if direction is None:
+        return self.theta.dot(input)
+      elif direction == "positive":
+        return (self.theta + hp.noise*delta).dot(input)
     else:
       return (self.theta - hp.noise*delta).dot(input)
     
@@ -88,9 +88,22 @@ def train(env, policy, normalizer, hp):
     
     for step in range(hp.nb_steps):
         
+        # Initializing the pertubations deltas and the postive/negative rewards
+        deltas = policy.sample_deltas()
+        positive_rewards = [0] * hp.nb_directions
+        negative_rewards = [0] * hp.nb_directions
         
-
-    
+      # Geting the positive rewards in the positive directions
+      for k in range(hp.nb_directions):
+        positive_rewards[k] = explore((env, normalizer, policy, direction = "positive", delta = deltas[k]))
+        
+      # Geting the negative rewards in the negative directions
+      for k in range(hp.nb_directions):
+        negative_rewards[k] = explore((env, normalizer, policy, direction = "negative", delta = deltas[k]))
+      
+      # Gathering all the positive/negative rewards to compute the standard deviation of the rewards
+      all_rewards = np.array(positive_rewards + negative_rewards)
+      sigma_r = all_rewards.std()
     
 
     
